@@ -31,7 +31,9 @@ load_dotenv()
 bot = Bot(token=os.getenv("BOT_TOKEN"))
 dp = Dispatcher()
 
-FILE = "dating.json"
+# On Railway set DATA_DIR=/data (a Volume mount) so the data survives restarts
+DATA_DIR = os.getenv("DATA_DIR", ".")
+FILE = os.path.join(DATA_DIR, "dating.json")
 ADMIN_ID = int(os.getenv("ADMIN_ID", "0"))
 MIN_AGE = 18
 REPORTS_TO_HIDE = 5
@@ -44,7 +46,7 @@ VIP_DAYS = 30
 FREE_LIKES_PER_DAY = 30
 MAX_PHOTOS_VIP = 10
 PAY_CONTACT = os.getenv("PAY_CONTACT", "@your_contact")
-BACKUP_DIR = "backups"
+BACKUP_DIR = os.path.join(DATA_DIR, "backups")
 BACKUP_EVERY_HOURS = 6
 BACKUPS_KEEP = 40
 
@@ -1030,6 +1032,7 @@ async def react(callback: CallbackQuery):
 
 
 async def main():
+    await bot.delete_webhook()  # polling cannot work while a webhook is set
     backup_task = asyncio.create_task(backup_loop())  # noqa: F841 (keep a reference)
     await dp.start_polling(bot)
 
